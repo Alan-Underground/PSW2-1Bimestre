@@ -1,0 +1,3 @@
+Raquete [peso=20.0, cor=, marca=30, comprimento=30]
+Agora vou asalvar a raquete diferente:
+A raquete é , tem peso 20,00 kg e comprimento 30 mm e a marca é 30.
