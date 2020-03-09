@@ -1,6 +1,9 @@
 package br.edu.ud.raquete;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.util.StringTokenizer;
 
 public class Raquete implements Serializable { //marcamos que pode ser serialiavel
 
@@ -62,9 +65,74 @@ public class Raquete implements Serializable { //marcamos que pode ser serialiav
 		public String toString() {
 			return "Raquete [peso=" + peso + ", cor=" + cor + ", marca=" + marca + ", comprimento=" + comprimento + "]";
 		}
+		//dependendo da configuração da maquina espera um ponto no float e dependendo da maquina espera uma virgula
+		public String toFileString() {
+			return   peso +"; "+ cor + "; "+ marca + "\n";
+		}
 		
+		//statico não preciso ter uma instancia para usar ele.
+		//uso static quando ele não usa atributos dessa classe, 
+		//vou criar atributos dentro do metodo.
+		public static Raquete fromFileString(String str) {
+			String cor;
+			float peso;
+			int comprimento;
+			StringTokenizer token = new StringTokenizer(str);
+			peso = Float.parseFloat(token.nextToken(";").trim());
+			cor = token.nextToken(";").trim();
+			comprimento = Integer.parseInt(token.nextToken(";").trim());
 		
+			return new Raquete(peso, cor, comprimento);
+		}
+	public static int getSize() {
+		return 4+4+30; //float + int + char[15]  //cada registro tem 38 bytes em disco
+	}
+
+	//assegura que o nome tenha um comprimento adequado
+	private String readCor( RandomAccessFile file) throws IOException{
+		 char cor[] = new char[15], temp;
+		 
+		 for (int count = 0; count < cor.length; count++) {
+			 temp = file.readChar();
+			 cor[ count] = temp;
+		 }
+		 return new String (cor).replace( '\0',' ').trim();
+		 }
+	
+	private void writeCor( RandomAccessFile file, String cor) throws IOException{
+		StringBuffer buffer = null;
+		
+		if(cor != null)
+			buffer = new StringBuffer (cor);
+		else buffer = new StringBuffer(15);
+		
+		buffer.setLength(15);
+		file.writeChars(buffer.toString());
+	}
+	//grava um registro no RamdomAccessFile especificado
+	public void write( RandomAccessFile file) throws IOException
+	{
+		file.writeFloat(peso);
+		writeCor(file,cor);
+		file.writeInt(comprimento);	
+	}
+	
+	//le um registro em um RamdomAccessFile especificado
+		public void read( RandomAccessFile file) throws IOException
+		{
+			setPeso(file.readFloat());
+			setCor(readCor(file));
+			setComprimento(file.readInt());
+		}
+	
+	
+	
+	
 }
+
+
+
+
 
 //File writer gravo textos
 

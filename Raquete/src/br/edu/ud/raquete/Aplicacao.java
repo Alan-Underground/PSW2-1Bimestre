@@ -1,14 +1,16 @@
 package br.edu.ud.raquete;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.RandomAccessFile;
 import java.util.Scanner;
 
 public class Aplicacao {
+	//private Scanner sc;
 
 	//private FileWriter output;
 	
@@ -18,14 +20,17 @@ public class Aplicacao {
 	}
 	
 	public Aplicacao() {
-		Raquete raquete = lerRaquete();
+		Scanner sc = new Scanner(System.in);
+		Raquete raquete = lerRaquete(sc);
 		
 		System.out.println("A sua raquete: " + raquete);
 		
 		FileWriter output = openFile();  //instancia um output, 
 		
 		try {
-			output.append(raquete.toString());//passo a string para dar o append no arquivo
+			output.append(raquete.toFileString());//passo a string para dar o append no arquivo (Estou gravando o tofileString e não o toString!
+			raquete.setComprimento(raquete.getComprimento()+15);
+			raquete.setCor("Vermelho");
 			output.append(String.format("\nAgora vou asalvar a raquete diferente:\n"));
 			output.append(String.format("A raquete é %s, tem peso %.2f kg e comprimento %d mm e a marca é %s.",raquete.getCor(), raquete.getPeso(), raquete.getComprimento(), raquete.getMarca()));
 			output.close();
@@ -34,6 +39,51 @@ public class Aplicacao {
 			
 			e.printStackTrace();
 		}
+		
+		Scanner in = getReadTextFile();
+		
+		String str = in.nextLine(); //ler uma linha
+		System.out.println(str);
+		Raquete r = Raquete.fromFileString(str); //criando um novo
+		System.out.println(r); //lendo esse novo
+		
+		str = in.nextLine();
+		System.out.println(str);
+		r = Raquete.fromFileString(str);
+		System.out.println(r);
+		
+		RandomAccessFile file = getRandomAccessFile();
+		
+		for(int i = 0; i < 5; i++) {//posicionando de acordo com o indice
+			try {
+				// file.seek(i * Raquete.getSize());
+				
+				raquete = lerRaquete(sc);
+				raquete.write(file);
+			
+			
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+				
+		}
+		for(int i = 4; i >=0; i--) {
+			try {
+				file.seek(i * Raquete.getSize());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//raquete.read(file);
+			
+			//System.out.println(raquete);
+		}
+		
+		
+		sc.close();
+		System.out.println("Fim!");
 		
 		try {
 			output.close(); //fechar o arquivo
@@ -67,25 +117,26 @@ public class Aplicacao {
 	
 	
 	
-	static Raquete lerRaquete() {
+	private Raquete lerRaquete(Scanner sc) {
 		float peso;
 		String cor;
 		int comprimento;
 		String marca;
 		
-		Scanner sc = new Scanner(System.in);
+		
 		
 		System.out.println("Qual o peso da raquete  (em quilos)?");
 		peso = sc.nextFloat();
 		System.out.println("Qual o comprimento da raquete (em milimetros)?");
 		comprimento = sc.nextInt();
+		if(sc.hasNextLine()) sc.nextLine();
 		System.out.println("Qual é a cor da raquete? ");
 		cor = sc.nextLine();
 		System.out.println("Qual é a marca da raquete? ");
 		marca = sc.nextLine();
 		
 		Raquete raquete = new Raquete(peso, cor, comprimento, marca);
-		sc.close();
+		
 		return raquete;
 	}
 	
@@ -113,6 +164,36 @@ public class Aplicacao {
 		}
 		return output;
 	}
+	
+	public Scanner getReadTextFile() {
+		Scanner input = null;
+		try {
+			input = new Scanner(new File("raquetes.txt"));
+			
+		}
+		catch (IOException e) { // 
+			System.err.println( "Error opening file." );
+			System.exit(1);
+			//e.printstackTrace
+		}
+		return input;
+	}
+	
+	public RandomAccessFile getRandomAccessFile() {
+		RandomAccessFile file = null;
+		try{
+			file= new RandomAccessFile( "raquete.dat","rw");
+		}
+		catch(FileNotFoundException e ) {
+			System.err.println("Error opening file");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return file;
+	}
+	
+	
+	
 	
 	public ObjectOutputStream writeObjectFile() {
 		ObjectOutputStream oos = null;
